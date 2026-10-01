@@ -52,7 +52,7 @@ const REL=[
 ];
 let S=JSON.parse(localStorage.getItem("MD2")||"null")||{shards:20,owned:["slime"],active:"slime",mons:{slime:{lv:1,xp:0,rare:false,custom:{acc:"",mark:"✦"}}},relics:[],best:0};
 let run=null,B=null,choices=[];
-const save=()=>localStorage.setItem("MD2",JSON.stringify(S));
+const save=()=>localStorage.setItem("MD3",JSON.stringify(S));
 function md(id){let b=M[id],x=S.mons[id]||{lv:1,xp:0,rare:false,custom:{}};let hp=b.hp,atk=b.atk,def=b.def,body=b.base,name=b.name;if(x.lv>=9){let e=b.evo[1];name=e[0];body=e[1];hp+=e[2].hp;atk+=e[2].atk;def+=e[2].def}else if(x.lv>=5){let e=b.evo[0];name=e[0];body=e[1];hp+=e[2].hp;atk+=e[2].atk;def+=e[2].def}if(x.rare){body="🌈";name="Shiny "+name}return {...b,...x,hp,atk,def,body,name}};
 function xpNeed(l){return 12+l*8}
 function vis(id,extra=""){let x=md(id);return `<span class="body">${x.body}</span><span class="acc">${x.custom?.acc||""}</span><span class="mark">${x.custom?.mark||extra}</span>`}
@@ -123,7 +123,7 @@ ensureV3();
 
 function v3Element(id){return V3.elements[id]||"NEUTRAL"}
 function v3Mult(a,b){return (V3.bonus[a]&&V3.bonus[a][b])||1}
-function v3Skill(id,index=0){return V3.skills[id]?.[index]||["Tackle","NEUTRAL",1.1]}
+function getV3Skill(id,index=0){return V3.skills[id]?.[index]||["Tackle","NEUTRAL",1.1]}
 function partyStats(id){
   let x=md(id), inv=S.inventory[id]||{};
   return {...x,element:v3Element(id),skill1:v3Skill(id,0),skill2:v3Skill(id,1),
@@ -273,7 +273,7 @@ function v3Capture(){
   }else{log("◉ Capture failed.");v3EnemyTurn()}
 }
 function v3Skill(index){
-  let f=currentFighter(),s=v3Skill(f.id,index);
+  let f=currentFighter(),s=getV3Skill(f.id,index);
   if(s[0]==="Bloom Heal"){B.partyHP[B.activeIndex]=Math.min(f.x.hp,B.partyHP[B.activeIndex]+Math.ceil(f.x.hp*.28));log("🌸 Bloom Heal restored HP.");setTimeout(v3EnemyTurn,160);v3DrawBattle();return}
   if(s[0]==="Fortify"){B.partyHP[B.activeIndex]=Math.min(f.x.hp,B.partyHP[B.activeIndex]+Math.ceil(f.x.hp*.12));log("🗿 Fortify restored a little HP.");setTimeout(v3EnemyTurn,160);v3DrawBattle();return}
   v3Attack(s[2],s[0]);
@@ -288,7 +288,7 @@ window.startBoss=()=>{let q=run.boss;B={e:{...q,hp:q.hp*1.55,maxHp:q.hp*1.55,atk
 const oldMap=map;
 window.map=function(){oldMap();v3Map();};
 const oldStart=startRun;
-window.startRun=function(){ensureV3();oldStart();v3Map();};
+window.startRun=function(){ensureV3();S.dungeon.runs=(S.dungeon.runs||0)+1;save();oldStart();v3Map();};
 const oldNext=next;
 window.next=function(msg){oldNext(msg);};
 function v3Status(){
